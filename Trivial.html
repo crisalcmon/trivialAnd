@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trivial Andalucía</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #ffebcd;
+        }
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            color: #8b0000;
+        }
+        h3 {
+            color: #006400;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-top: 10px;
+            cursor: pointer;
+            background-color: #4682b4;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #4169e1;
+        }
+        #respuestaUsuario {
+            margin-top: 20px;
+            padding: 10px;
+            font-size: 16px;
+            width: 80%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .correcto {
+            color: green;
+            font-weight: bold;
+        }
+        .incorrecto {
+            color: red;
+            font-weight: bold;
+        }
+        #marcador {
+            font-size: 18px;
+            margin-top: 10px;
+            font-weight: bold;
+            color: #8b0000;
+        }
+        #validacion {
+            margin-top: 10px;
+        }
+        .logo {
+            width: 150px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="trivial.jpg" alt="Trivial Andalucía" class="logo">
+        <h1>Trivial Andalucía</h1>
+        <h3 id="categoria"></h3>
+        <p id="pregunta"></p>
+        <input type="text" id="respuestaUsuario" placeholder="Escribe tu respuesta aquí...">
+        <button onclick="mostrarValidacion()">Comprobar respuesta</button>
+        <div id="validacion" style="display: none;">
+            <p>¿Es correcta la respuesta?</p>
+            <p id="respuestaCorrecta"></p>
+            <button onclick="validarRespuesta(true)">✅ Correcto</button>
+            <button onclick="validarRespuesta(false)">❌ Incorrecto</button>
+        </div>
+        <p id="feedback"></p>
+        <p id="marcador">Aciertos: 0 / 0</p>
+        <p id="notaFinal" style="font-size: 20px; font-weight: bold; margin-top: 20px;"></p>
+    </div>
+
+    <script>
+
+        const preguntas = {
+            "Gastronomía": [
+                ["¿Cuál es el plato típico hecho con tomate de Córdoba?", "El salmorejo"],
+                ["¿Qué plato típico de Jaén lleva habas verdes, pimiento verde, ajo, huevo duro, atún y por supuesto aceite de oliva?", "La pipirrana jaenera"],
+                ["¿Qué plato cordobés lleva almendras y se sirve bien fresquito?", "El ajoblanco"],
+                ["¿Qué plato típico de Córdoba lleva cinta de lomo y jamón serrano y se reboza de pan rallado y huevo?", "El flamenquín"],
+                ["¿Qué tipo de harina se usa para hacer las famosas tortillas de camarones gaditanas y qué son los camarones?", "Se usa harina de garbanzos y los camarones son gambitas muy muy pequeñitas"],
+                ["¿Qué pueblo de Huelva es famoso por sus jamones?", "Jabugo"],
+                ["¿Qué plato malagueño lleva patatas cocidas, huevo duro, cebolla, naranja, bacalao, aceitunas, sal, aceite de oliva y vinagre?", "La ensaladilla o ensalada malagueña"],
+                ["¿Cuáles son los tres ingredientes principales del gazpacho andaluz?", "Aceite, tomate y ajo"],
+                ["¿A qué se llama oro líquido en la gastronomía de Jaén?", "Al aceite de oliva"],
+                ["¿Qué pescado se come en Málaga, que a su vez da el apodo de sus habitantes?", "Los boquerones"],
+                ["¿Qué dulce es típico de Granada?", "El pionono"],
+                ["¿Qué plato típico es consumido por cientos de turistas y malagueños durante el verano en Málaga?", "Espeto de sardinas"],
+                ["¿Dónde se hacen los polvorones más famosos de España?", "En Estepa (Sevilla)"],
+                ["¿Cómo se llama la sopa fría elaborada a base de tomates, pepino, pimientos, ajo, cebolla, pan, vinagre y aceite de oliva?", "Gazpacho"],
+                ["¿Cómo se llama el dulce típico de Antequera cuyo ingrediente principal es la almendra?", "Bienmesabe"],
+                ["¿Cómo se llaman los dulces malagueños hechos con masa de hojaldre, huevo y glaseado con una guinda en la parte superior?", "Locas o tortas locas"],
+                ["¿Cómo se llama el plato andaluz hecho a base de patatas, pimientos, cebolla, aceite y sal?", "Papas a lo pobre"]
+            ],
+            "Monumentos": [
+            	["¿Cuál es el monumento más importante de la ciudad de Almería, y quién la comenzó?", "La Alcazaba, empezada por Abderramán III en el año 995."],
+				["¿En qué ciudad andaluza está situado el Monumento a Colón?", "En Huelva."],
+				["¿Qué monumento malagueño se construyó entre los siglos XI y XV?", "La Alcazaba."],
+				["¿Cómo se llama el teatro donde se celebra el carnaval gaditano?", "Teatro Falla."],
+				["¿Cuál es el monumento más importante de Sevilla y cuándo se construyó?", "La Giralda, se creó en el S. XII y fue terminada en el XVI."],
+				["¿Qué dos ciudades de Jaén se consideraron Patrimonio de la Humanidad en el año 2003?", "Úbeda y Baeza."],
+				["¿Cuál es el monumento más representativo de Córdoba?", "La Mezquita."],
+				["¿Qué monumento conmemorativo es muy importante en Cádiz y por qué?", "El monumento a la Constitución de 1812, es importante porque allí se aprobó la Constitución española."],
+				["¿Cuál es el monumento más conocido y famoso de Granada?", "La Alhambra."],
+				["¿De qué año data el Alcázar de los Reyes Cristianos de Córdoba?", "Data del año 1300."],
+				["¿Cómo se llama el barrio más conocido de Granada?", "El Sacromonte."],
+				["Nombra tres monumentos importantes de Sevilla.", "Torre del Oro, Real Alcázar, La Giralda, Catedral, Plaza de España..."],
+				["¿Qué monumento de Málaga es conocido como 'La Manquita' por estar incompleta una de sus torres?", "La Catedral."],
+				["¿Cuál es uno de los monumentos de origen medieval más famoso de Jaén?", "El Castillo de Santa Catalina."],
+				["¿Cuál es el teatro más antiguo de la capital malagueña?", "El teatro romano."],
+				["¿Qué famosa escultura del siglo IV a.C. se encontró en 1971?", "La Dama de Baza (se encontró en Baza, Granada)."],
+				["¿Cuál es el monumento más emblemático de la ciudad malagueña de Ronda?", "El Puente Nuevo."]
+            ],
+            "Personajes famosos": [
+				["¿Cuál es uno de los escritores granadinos más conocido?", "Federico García Lorca"],
+		        ["¿Qué cantante jienense recibió en 1982 el 'Disco de Uranio' por vender 50 millones de discos?", "Raphael"],
+		        ["¿Qué escritor onubense, autor de 'Platero y yo', recibió el premio Nobel de Literatura en el año 1956?", "Juan Ramón Jiménez"],
+		        ["¿Qué pintor/escultor malagueño es uno de los genios del arte contemporáneo a nivel mundial?", "Pablo Picasso"],
+		        ["¿Cómo se llama un importantísimo cantaor flamenco gaditano y en qué pueblo nació?", "Camarón de la Isla, nació en San Fernando"],
+		        ["¿Qué mujer almeriense es considerada la primera periodista española?", "Carmen de Burgos"],
+		        ["¿Qué actor malagueño protagonizó la película 'El Zorro' en Hollywood?", "Antonio Banderas"],
+		        ["¿Qué deportista onubense ha sido 3 veces campeona del mundo y oro en Río en 2016 en bádminton?", "Carolina Marín"],
+		        ["¿Cómo se llamaba el filósofo, político y orador procedente de la Córdoba Romana?", "Séneca"],
+		        ["¿Qué importantes cantaoras gaditanas han sido reconocidas mundialmente por su gran fama?", "Lola Flores y Rocío Jurado"],
+		        ["¿Qué humorista malagueño saltó a la fama con expresiones como 'Te da cuen', 'Cobarderrr', 'Fistro de la pradera'?", "Chiquito de la Calzada"],
+		        ["¿Quién es considerado el padre de la Patria Andaluza?", "Blas Infante"],
+		        ["¿Qué filósofa y ensayista malagueña recibió el Príncipe de Asturias en 1981 y el Cervantes en 1988?", "María Zambrano"],
+		        ["¿Cómo se llama el actual Presidente andaluz?", "Juan Manuel Moreno Bonilla"],
+		        ["¿Qué mujer malagueña se convirtió en la primera mujer que ejerció la abogacía en España?", "Victoria Kent"],
+		        ["¿Qué famoso pintor sevillano realizó las obras mundialmente conocidas de 'Las Meninas', 'La rendición de Breda' o 'Las hilanderas'?", "Diego Velázquez"],
+		        ["¿Qué compositor gaditano compuso 'El amor brujo' y 'El sombrero de tres picos'?", "Manuel de Falla"]
+            ],
+            "Flora y fauna": [
+				["¿Cuál es el animal más típico de Cádiz, de qué tipo es?", "La abubilla y es una especie de ave."],
+				["¿Cómo se llama el ramillete de jazmines típico de Málaga?", "La biznaga."],
+				["¿Qué parque sevillano fue declarado 'Parque Natural' en 1989?", "El Parque Natural de Sierra Norte."],
+				["¿Qué animal en peligro de extinción vive en el Parque Nacional de Doñana?", "El lince ibérico."],
+				["¿Cómo se llama un parque sevillano muy turístico y emblemático, que fue su primer parque urbano y uno de sus pulmones verdes?", "El Parque de María Luisa."],
+				["¿Qué flor predomina en los patios cordobeses?", "Los geranios."],
+				["¿Con qué nombre se conoce al 'espacio natural' más importante de Andalucía situado en la provincia de Huelva?", "Parque Nacional de Doñana."],
+				["¿Qué provincia andaluza produce más fresas?", "Huelva."],
+				["¿Cómo se llama el parque Natural de Jaén?", "Parque Natural de Cazorla, Segura y Las Villas."],
+				["¿Qué Parque Natural almeriense fue declarado espacio protegido en 1987?", "El Parque Natural del Cabo de Gata-Níjar."],
+				["¿Qué animal hace 'La berrea' en Cazorla?", "El ciervo."],
+				["¿Qué reptil cambia de color, se alimenta de insectos y vive en los pinares andaluces?", "El camaleón."],
+				["¿Qué árbol almeriense es considerado el más grande de Andalucía, con 15 m de perímetro en la base y 19 m de altura?", "La encina milenaria de Serón."],
+				["¿Qué vegetación de plantas aromáticas predomina en Granada?", "El tomillo y el romero."],
+				["¿Cómo se llama un árbol, parecido al abeto, cuyo hábitat es la Sierra de la Nieves y de Grazalema?", "Pinsapo."],
+				["¿De qué árbol abundante en Andalucía se saca el corcho?", "El alcornoque."],
+				["¿Dónde se encuentra la colonia de flamencos más grande de toda España?", "En la Reserva Natural de la Laguna de Fuente de Piedra (Málaga)."]
+			],
+            "Geografía": [
+		        ["¿Qué mares y océanos bañan Andalucía?", "Mar Mediterráneo y Océano Atlántico"],
+		        ["¿Dónde nace el río Guadalquivir?", "En la Sierra de Cazorla"],
+		        ["¿En qué desierto almeriense se ruedan películas del Oeste americano?", "En el desierto de Tabernas"],
+		        ["¿Cuál es y cuánto mide la montaña más alta de Granada y de la Península Ibérica?", "El pico del Mulhacén, con 3.479 metros"],
+		        ["¿Cuál es la provincia más árida y con menos lluvias de Andalucía?", "Almería"],
+		        ["¿Dónde está el 'Caminito del Rey' de Málaga?", "En el Desfiladero de los Gaitanes, situado entre los municipios de Álora, Antequera y Ardales"],
+		        ["¿En qué provincia se encuentra el denominado 'Mar de Plástico'?", "En Almería"],
+		        ["¿Cuáles son las provincias andaluzas?", "Almería, Cádiz, Córdoba, Granada, Huelva, Jaén, Málaga y Sevilla"],
+		        ["¿Cómo se llama el límite fronterizo entre Andalucía y Castilla-La Mancha?", "Despeñaperros"],
+		        ["¿De qué puerto salió Colón en el viaje del descubrimiento de América?", "Del Puerto de Palos de la Frontera en Huelva"],
+		        ["¿Cuál es el puerto más grande de Andalucía y de España?", "El Puerto de Algeciras en Cádiz"],
+		        ["¿Cuáles son los dos ríos más importantes de Huelva?", "El Odiel y el Tinto"],
+		        ["¿Cuál es el río más largo que pasa por Sevilla?", "El río Guadalquivir"],
+		        ["¿Qué provincias andaluzas no tienen costa?", "Jaén, Córdoba y Sevilla"],
+		        ["¿Qué tres Comunidades Autónomas limitan con Andalucía?", "Extremadura, Castilla-La Mancha y Murcia"],
+		        ["¿Cómo se llama la parte más occidental del Mar Mediterráneo?", "Mar de Alborán"],
+		        ["¿Cuál es el sitio más cercano por donde se puede cruzar de España a Marruecos?", "El Estrecho de Gibraltar"]
+            ],
+            "Fiestas y tradiciones": [
+                ["¿Cuál es la fiesta tradicional más típica de Jaén?", "El Fuego de San Antón"],
+		        ["Cita tres culturas que hayan tenido relevancia en la ciudad de Córdoba.", "Cultura Romana, Árabe y Judía"],
+		        ["¿Qué día se celebra la fiesta de nuestra comunidad?", "El 28 de febrero"],
+		        ["¿Cuál es la fiesta más importante de Granada?", "El Corpus Christi"],
+		        ["¿Cómo se llama el baile típico andaluz que tiene nombre de ave y fue declarado en 2010 patrimonio de la Humanidad?", "El flamenco"],
+		        ["¿Qué frase podemos leer en la parte inferior del escudo andaluz?", "Andalucía, por sí, para España y la Humanidad"],
+		        ["¿Cuál es el símbolo de Almería, que representa una figura humana con los brazos extendidos y un arco sobre sus manos?", "El Indalo"],
+		        ["¿Cuál es la fiesta más tradicional de Sevilla?", "La Feria de Abril"],
+		        ["¿Cómo se llaman lo que llevan los 'Hombres de Trono' durante la Semana Santa de Málaga?", "Tronos o pasos"],
+		        ["¿Cuál es la fiesta más importante de Cádiz y cuándo se celebra?", "El Carnaval y se celebra en febrero"],
+		        ["¿Cuál es la romería más famosa de Andalucía, que se celebra en Huelva?", "La Romería del Rocío"],
+		        ["¿Por qué es tan reconocido el pueblo gaditano de Jerez?", "Por los vinos y los caballos"],
+		        ["¿Cuál es una de las tradiciones más importantes de Córdoba?", "Las Cruces de Mayo"],
+		        ["¿Qué son los Patios Cordobeses?", "Es un concurso en el que la gente muestra sus patios adornados con cientos de macetas"],
+		        ["¿Cómo se llama el baile malagueño donde hombres y mujeres bailan con sombreros de flores y cintas de colores en la mano?", "Los verdiales"],
+		        ["¿Cuántas Semanas Santas de Interés Turístico Internacional hay en Andalucía?", "Málaga, Granada y Sevilla"],
+		        ["¿Qué conmemora la 'Feria de agosto' de Málaga?", "La toma de la ciudad por parte de los Reyes Católicos incorporándola a la Corona de Castilla"]
+	        ]
+        };
+
+        let categoriaActual, preguntaActual;
+        let aciertos = 0, totalPreguntas = 0;
+
+        function nuevaPregunta() {
+            const categorias = Object.keys(preguntas);
+            categoriaActual = categorias[Math.floor(Math.random() * categorias.length)];
+            preguntaActual = preguntas[categoriaActual][Math.floor(Math.random() * preguntas[categoriaActual].length)];
+
+            document.getElementById("categoria").textContent = categoriaActual;
+            document.getElementById("pregunta").textContent = preguntaActual[0];
+            document.getElementById("respuestaUsuario").value = "";
+            document.getElementById("feedback").textContent = "";
+            document.getElementById("validacion").style.display = "none";
+        }
+
+        function mostrarValidacion() {
+            document.getElementById("validacion").style.display = "block";
+            document.getElementById("respuestaCorrecta").textContent = "Respuesta correcta: " + preguntaActual[1];
+        }
+
+        function validarRespuesta(esCorrecta) {
+            totalPreguntas++;
+            if (esCorrecta) {
+                aciertos++;
+                document.getElementById("feedback").textContent = "¡Respuesta correcta!";
+                document.getElementById("feedback").className = "correcto";
+            } else {
+                document.getElementById("feedback").textContent = "Respuesta incorrecta.";
+                document.getElementById("feedback").className = "incorrecto";
+            }
+            document.getElementById("marcador").textContent = `Aciertos: ${aciertos} / ${totalPreguntas}`;
+            document.getElementById("validacion").style.display = "none";
+            if (totalPreguntas === 10) mostrarNotaFinal();
+            else nuevaPregunta();
+        }
+
+		function mostrarNotaFinal() {
+            let mensaje;
+            if (aciertos >= 8) {
+                mensaje = "¡Excelente trabajo! Has demostrado un gran conocimiento.";
+            } else if (aciertos >= 5) {
+                mensaje = "¡Bien hecho! Aún puedes mejorar.";
+            } else {
+                mensaje = "Sigue practicando, puedes hacerlo mejor.";
+            }
+            document.getElementById("notaFinal").textContent = `Tu puntuación: ${aciertos}/10. ${mensaje}`;
+
+            // Crear botón de reinicio
+            let botonReiniciar = document.createElement("button");
+            botonReiniciar.textContent = "Reiniciar juego";
+            botonReiniciar.onclick = reiniciarJuego;
+            botonReiniciar.style.display = "block";
+            botonReiniciar.style.margin = "10px auto";
+            botonReiniciar.style.padding = "10px";
+            botonReiniciar.style.fontSize = "16px";
+
+            // Agregar botón al contenedor
+            document.getElementById("notaFinal").appendChild(botonReiniciar);
+        }
+
+        function reiniciarJuego() {
+            aciertos = 0;
+            totalPreguntas = 0;
+            document.getElementById("notaFinal").textContent = "";
+            document.getElementById("marcador").textContent = "Aciertos: 0 / 0";
+            nuevaPregunta();
+        }
+
+        nuevaPregunta();
+    </script>
+</body>
+</html>
+
