@@ -18,6 +18,14 @@
             border-radius: 10px;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
         }
+        .filter-container {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .category-selection {
+            display: none;
+            text-align: left;
+        }
         h1 {
             color: #8b0000;
         }
@@ -72,6 +80,11 @@
     <div class="container">
         <img src="trivial.jpg" alt="Trivial Andalucía" class="logo">
         <h1>Trivial Andalucía</h1>
+        <div class="filter-container">
+            <label><input type="radio" name="categoryFilter" value="all" checked onchange="toggleCategorySelection()"> Todas las categorías</label>
+            <label><input type="radio" name="categoryFilter" value="specific" onchange="toggleCategorySelection()"> Categorías específicas</label>
+        </div>
+        <div id="categorySelection" class="category-selection"></div>
         <h3 id="categoria"></h3>
         <p id="pregunta"></p>
         <input type="text" id="respuestaUsuario" placeholder="Escribe tu respuesta aquí...">
@@ -88,7 +101,6 @@
     </div>
 
     <script>
-
         const preguntas = {
             "Gastronomía": [
                 ["¿Cuál es el plato típico hecho con tomate de Córdoba?", "El salmorejo"],
@@ -205,17 +217,39 @@
 		        ["¿Qué conmemora la 'Feria de agosto' de Málaga?", "La toma de la ciudad por parte de los Reyes Católicos incorporándola a la Corona de Castilla"]
 	        ]
         };
+        function toggleCategorySelection() {
+            const categorySelection = document.getElementById("categorySelection");
+            if (document.querySelector('input[name="categoryFilter"]:checked').value === "specific") {
+                categorySelection.style.display = "block";
+                categorySelection.innerHTML = "";
+                Object.keys(preguntas).forEach(category => {
+                    const checkbox = document.createElement("input");
+                    checkbox.type = "checkbox";
+                    checkbox.value = category;
+                    checkbox.name = "categoryCheckbox";
+                    categorySelection.appendChild(checkbox);
+                    categorySelection.appendChild(document.createTextNode(category));
+                    categorySelection.appendChild(document.createElement("br"));
+                });
+            } else {
+                categorySelection.style.display = "none";
+            }
+        }
 
-        let categoriaActual, preguntaActual;
-        let aciertos = 0, totalPreguntas = 0;
+        function obtenerCategoriasSeleccionadas() {
+            if (document.querySelector('input[name="categoryFilter"]:checked').value === "all") {
+                return Object.keys(preguntas);
+            }
+            return Array.from(document.querySelectorAll('input[name="categoryCheckbox"]:checked')).map(cb => cb.value);
+        }
 
         function nuevaPregunta() {
-            const categorias = Object.keys(preguntas);
-            categoriaActual = categorias[Math.floor(Math.random() * categorias.length)];
-            preguntaActual = preguntas[categoriaActual][Math.floor(Math.random() * preguntas[categoriaActual].length)];
-
-            document.getElementById("categoria").textContent = categoriaActual;
-            document.getElementById("pregunta").textContent = preguntaActual[0];
+            const categoriasSeleccionadas = obtenerCategoriasSeleccionadas();
+            if (categoriasSeleccionadas.length === 0) return;
+            const categoria = categoriasSeleccionadas[Math.floor(Math.random() * categoriasSeleccionadas.length)];
+            const pregunta = preguntas[categoria][Math.floor(Math.random() * preguntas[categoria].length)];
+            document.getElementById("categoria").textContent = categoria;
+            document.getElementById("pregunta").textContent = pregunta[0];
             document.getElementById("respuestaUsuario").value = "";
             document.getElementById("feedback").textContent = "";
             document.getElementById("validacion").style.display = "none";
@@ -223,8 +257,9 @@
 
         function mostrarValidacion() {
             document.getElementById("validacion").style.display = "block";
-            document.getElementById("respuestaCorrecta").textContent = "Respuesta correcta: " + preguntaActual[1];
+            document.getElementById("respuestaCorrecta").textContent = "Respuesta correcta: " + preguntas[document.getElementById("categoria").textContent].find(p => p[0] === document.getElementById("pregunta").textContent)[1];
         }
+
 
         function validarRespuesta(esCorrecta) {
             totalPreguntas++;
@@ -273,9 +308,9 @@
             document.getElementById("marcador").textContent = "Aciertos: 0 / 0";
             nuevaPregunta();
         }
-
+        let categoriaActual, preguntaActual;
+        let aciertos = 0, totalPreguntas = 0;
         nuevaPregunta();
     </script>
 </body>
 </html>
-
